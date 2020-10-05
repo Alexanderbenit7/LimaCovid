@@ -306,5 +306,130 @@ plot
 ```
 
 
+##### Situación de San Miguel:
+
+```{r include=FALSE}
+miraflores = data[data$DISTRITO == "SAN MIGUEL",]
+```
+
+```{r include=FALSE}
+miraflores = miraflores %>% group_by(FECHA_RESULTADO) %>% summarise(count = n ())
+```
+
+```{r include=FALSE}
+#Separando día, mes y año:
+miraflores$year = substr(miraflores$FECHA_RESULTADO,1,4)
+miraflores$month = substr(miraflores$FECHA_RESULTADO,5,6)
+miraflores$day = substr(miraflores$FECHA_RESULTADO,7,8)
+```
+
+```{r include=FALSE}
+#Agregando cosas:
+miraflores$year=paste0(miraflores$year,"/")
+miraflores$month=paste0(miraflores$month,"/")
+```
+
+```{r include=FALSE}
+#Juntando para el armado de fecha:
+miraflores$Fecha = paste0(miraflores$year,miraflores$month)
+miraflores$Fecha = paste0(miraflores$Fecha,miraflores$day)
+```
+
+```{r include=FALSE}
+miraflores$Fecha=as.POSIXct(miraflores$Fecha,format="%Y/%m/%d")
+```
+
+```{r include=FALSE}
+library(lubridate)
+miraflores$month=month(miraflores$Fecha, label = TRUE)
+miraflores$day=day(miraflores$Fecha)
+```
+
+```{r include=FALSE}
+miraflores = miraflores[,c(2,4,5,6)]
+```
+
+```{r include=FALSE}
+casos_fecha = miraflores %>%
+    dplyr::group_by(month,day) %>%
+  dplyr::summarise(casos = sum(count))
+```
+
+```{r fig.height = 4.5, echo=FALSE,warning=FALSE}
+plot <- ggplot(casos_fecha, aes(x = day, y = month, fill = casos)) +
+  geom_tile() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.6), legend.title = element_blank(), legend.position="top", legend.direction="horizontal", legend.key.width=unit(2, "cm"), legend.key.height=unit(0.25, "cm")) +
+  labs(x = "Día", y = "Mes", title = "Casos postitivos en San Miguel") +
+  scale_fill_gradient(low = "white", high = "#27AE99")+
+    	    theme(panel.background=element_rect(fill = "white", colour = "black")) + theme(plot.title = element_text(hjust = 0.5))
+plot
+```
+
+
+##### Situación de Pueblo Libre:
+
+```{r include=FALSE}
+miraflores = data[data$DISTRITO == "PUEBLO LIBRE",]
+```
+
+```{r include=FALSE}
+miraflores = miraflores %>% group_by(FECHA_RESULTADO) %>% summarise(count = n ())
+```
+
+```{r include=FALSE}
+#Separando día, mes y año:
+miraflores$year = substr(miraflores$FECHA_RESULTADO,1,4)
+miraflores$month = substr(miraflores$FECHA_RESULTADO,5,6)
+miraflores$day = substr(miraflores$FECHA_RESULTADO,7,8)
+```
+
+```{r include=FALSE}
+#Agregando cosas:
+miraflores$year=paste0(miraflores$year,"/")
+miraflores$month=paste0(miraflores$month,"/")
+```
+
+```{r include=FALSE}
+#Juntando para el armado de fecha:
+miraflores$Fecha = paste0(miraflores$year,miraflores$month)
+miraflores$Fecha = paste0(miraflores$Fecha,miraflores$day)
+```
+
+```{r include=FALSE}
+miraflores$Fecha=as.POSIXct(miraflores$Fecha,format="%Y/%m/%d")
+```
+
+```{r include=FALSE}
+library(lubridate)
+miraflores$month=month(miraflores$Fecha, label = TRUE)
+miraflores$day=day(miraflores$Fecha)
+```
+
+```{r include=FALSE}
+miraflores = miraflores[,c(2,4,5,6)]
+```
+
+```{r include=FALSE}
+casos_fecha = miraflores %>%
+    dplyr::group_by(month,day) %>%
+  dplyr::summarise(casos = sum(count))
+```
+
+```{r fig.height = 4.5, echo=FALSE,warning=FALSE}
+plot <- ggplot(casos_fecha, aes(x = day, y = month, fill = casos)) +
+  geom_tile() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.6), legend.title = element_blank(), legend.position="top", legend.direction="horizontal", legend.key.width=unit(2, "cm"), legend.key.height=unit(0.25, "cm")) +
+  labs(x = "Día", y = "Mes", title = "Casos postitivos en Pueblo Libre") +
+  scale_fill_gradient(low = "white", high = "#27AE99")+
+    	    theme(panel.background=element_rect(fill = "white", colour = "black")) + theme(plot.title = element_text(hjust = 0.5))
+plot
+```
+
+
+
+
+
+
+
 
 
