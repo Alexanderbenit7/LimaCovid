@@ -1,0 +1,195 @@
+```{r include=FALSE}
+data = read.csv("positivos_covid.csv")
+pop = read.csv("pop.csv")
+```
+
+```{r include=FALSE}
+##### 1. Población por distrito:
+
+pop=data.frame(lapply(pop, function(v) {
+  if (is.character(v)) return(toupper(v))
+  else return(v)
+}))
+```
+
+```{r include=FALSE}
+library(stringr)
+pop$Pop=str_replace_all(pop$Pop, fixed(" "), "")
+```
+
+```{r include=FALSE}
+pop$Pop = as.numeric(pop$Pop)
+```
+
+```{r include=FALSE}
+##### 2. Casos por distrito:
+data = data[data$DEPARTAMENTO == "LIMA",]
+miraflores = data[data$DISTRITO == "MIRAFLORES",]
+```
+
+```{r include=FALSE}
+library(tidyverse)
+distritos = data %>% group_by(DISTRITO) %>% summarise(count = n ())
+miraflores = miraflores %>% group_by(FECHA_RESULTADO) %>% summarise(count = n ())
+```
+
+```{r include=FALSE}
+#22914 casos en investigación
+distritos[4,1] = "BRENA"
+distritos = distritos[-c(11),]
+```
+
+
+#### Casos y positividad por cada 100 habitantes:
+
+
+```{r include=FALSE}
+##### 3. Casos y positividad por cada 100 habitantes:
+distritos = merge(distritos, pop, by.x = "DISTRITO", by.y = "Nombre", all.x = T)
+```
+
+```{r include=FALSE}
+distritos$tasa = distritos$count*100/distritos$Pop
+```
+
+```{r include=FALSE}
+library(ggplot2)
+a=ggplot(data=distritos, aes(x=reorder(DISTRITO, count), y=count)) +
+  geom_bar(stat="identity", fill="skyblue") + labs(title="Casos positivos por distrito", y="Número", x="Distrito") +theme(panel.background=element_rect(fill = "white", colour = "black")) + theme(plot.title = element_text(hjust = 0.5)) + coord_flip() + geom_hline(yintercept = mean(distritos$count), linetype="dashed", color="red") 
+
+
+b=ggplot(data=distritos, aes(x=reorder(DISTRITO, tasa), y=tasa)) +
+  geom_bar(stat="identity", fill="skyblue") + labs(title="Porcentaje con respecto al total", y="Porcentaje", x="Distrito") +theme(panel.background=element_rect(fill = "white", colour = "black")) + theme(plot.title = element_text(hjust = 0.5)) + coord_flip() + geom_hline(yintercept = mean(distritos$tasa), linetype="dashed", color="red") 
+```
+
+```{r fig.height = 6.5, fig.width= 11, echo=FALSE,warning=FALSE}
+library(ggpubr)
+ggarrange(a,b, ncol = 2, nrow = 1)
+```
+```{r include=FALSE}
+colnames(distritos) = c("DISTRITO","CASOS POSTITIVOS","POB","PORCENTAJE")
+```
+
+```{r echo=FALSE, results='asis'}
+library(knitr)
+kable(distritos[,c(1,2,4)], caption = "Número y tasa de positividad por distrito en Lima Metropolitana")
+```
+
+#### Situación de Miraflores:
+
+```{r include=FALSE}
+#Separando día, mes y año:
+miraflores$year = substr(miraflores$FECHA_RESULTADO,1,4)
+miraflores$month = substr(miraflores$FECHA_RESULTADO,5,6)
+miraflores$day = substr(miraflores$FECHA_RESULTADO,7,8)
+```
+
+```{r include=FALSE}
+#Agregando cosas:
+miraflores$year=paste0(miraflores$year,"/")
+miraflores$month=paste0(miraflores$month,"/")
+```
+
+```{r include=FALSE}
+#Juntando para el armado de fecha:
+miraflores$Fecha = paste0(miraflores$year,miraflores$month)
+miraflores$Fecha = paste0(miraflores$Fecha,miraflores$day)
+```
+
+```{r include=FALSE}
+miraflores$Fecha=as.POSIXct(miraflores$Fecha,format="%Y/%m/%d")
+```
+
+```{r include=FALSE}
+library(lubridate)
+miraflores$month=month(miraflores$Fecha, label = TRUE)
+miraflores$day=day(miraflores$Fecha)
+```
+
+```{r include=FALSE}
+miraflores = miraflores[,c(2,4,5,6)]
+```
+
+```{r include=FALSE}
+casos_fecha = miraflores %>%
+    dplyr::group_by(month,day) %>%
+  dplyr::summarise(casos = sum(count))
+```
+
+```{r fig.height = 4.5, echo=FALSE,warning=FALSE}
+plot <- ggplot(casos_fecha, aes(x = day, y = month, fill = casos)) +
+  geom_tile() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.6), legend.title = element_blank(), legend.position="top", legend.direction="horizontal", legend.key.width=unit(2, "cm"), legend.key.height=unit(0.25, "cm")) +
+  labs(x = "Día", y = "Mes", title = "Casos postitivos en Miraflores") +
+  scale_fill_gradient(low = "white", high = "#27AE99")+
+    	    theme(panel.background=element_rect(fill = "white", colour = "black")) + theme(plot.title = element_text(hjust = 0.5))
+plot
+```
+
+#### Situación de San Juan de Lurigancho:
+
+
+```{r include=FALSE}
+miraflores = data[data$DISTRITO == "SAN JUAN DE LURIGANCHO",]
+```
+
+```{r include=FALSE}
+miraflores = miraflores %>% group_by(FECHA_RESULTADO) %>% summarise(count = n ())
+```
+
+```{r include=FALSE}
+#Separando día, mes y año:
+miraflores$year = substr(miraflores$FECHA_RESULTADO,1,4)
+miraflores$month = substr(miraflores$FECHA_RESULTADO,5,6)
+miraflores$day = substr(miraflores$FECHA_RESULTADO,7,8)
+```
+
+```{r include=FALSE}
+#Agregando cosas:
+miraflores$year=paste0(miraflores$year,"/")
+miraflores$month=paste0(miraflores$month,"/")
+```
+
+```{r include=FALSE}
+#Juntando para el armado de fecha:
+miraflores$Fecha = paste0(miraflores$year,miraflores$month)
+miraflores$Fecha = paste0(miraflores$Fecha,miraflores$day)
+```
+
+```{r include=FALSE}
+miraflores$Fecha=as.POSIXct(miraflores$Fecha,format="%Y/%m/%d")
+```
+
+```{r include=FALSE}
+library(lubridate)
+miraflores$month=month(miraflores$Fecha, label = TRUE)
+miraflores$day=day(miraflores$Fecha)
+```
+
+```{r include=FALSE}
+miraflores = miraflores[,c(2,4,5,6)]
+```
+
+```{r include=FALSE}
+casos_fecha = miraflores %>%
+    dplyr::group_by(month,day) %>%
+  dplyr::summarise(casos = sum(count))
+```
+
+```{r fig.height = 4.5, echo=FALSE,warning=FALSE}
+plot <- ggplot(casos_fecha, aes(x = day, y = month, fill = casos)) +
+  geom_tile() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.6), legend.title = element_blank(), legend.position="top", legend.direction="horizontal", legend.key.width=unit(2, "cm"), legend.key.height=unit(0.25, "cm")) +
+  labs(x = "Día", y = "Mes", title = "Casos postitivos en San Juan de Lurigancho") +
+  scale_fill_gradient(low = "white", high = "#27AE99")+
+    	    theme(panel.background=element_rect(fill = "white", colour = "black")) + theme(plot.title = element_text(hjust = 0.5))
+plot
+```
+
+
+
+
+
+
+
+
